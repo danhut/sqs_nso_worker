@@ -18,6 +18,7 @@ while 1:
         message = result_set[0]
         print (message)
         message_body = message.get_body()
+        print (message_body)
         m = json.loads(message_body)
         print (str (datetime.now()) + ": Got message from SQS: ")
         print (m)
