@@ -4,7 +4,7 @@ from datetime import datetime
 # Connect to SQS
 conn = boto.sqs.connect_to_region("us-west-2")
 # Choose the used queue
-queue = conn.get_queue('nso_queue')
+queue = conn.get_queue('nsoqueue.fifo')
 
 nso_username = 'admin'
 nso_password = 'admin'
@@ -22,10 +22,13 @@ while 1:
         m = json.loads(message_body)
         print (str (datetime.now()) + ": Got message from SQS: ")
         print (m)
-        conn.delete_message(queue, message)
     except IndexError:
         pass
     if m is not None:
-        requests.post (nso_base_uri,json=m,auth=(nso_username, nso_password),headers={'content-type':'application/vnd.yang.data+json'})
-        print (str (datetime.now()) + ": Created service on NSO")
+        result = (requests.post (nso_base_uri,m,auth=(nso_username, nso_password),headers={'content-type':'application/vnd.yang.data+json'}))
+        print (result.status_code)
+        if (result.status_code == 201):
+            print (str (datetime.now()) + ": Created service on NSO")
+            conn.delete_message(queue, message)
+            print ("Deleted request from SQS")
         m = None
